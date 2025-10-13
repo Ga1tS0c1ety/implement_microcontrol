@@ -17,6 +17,8 @@ const int IN4 = 11;  // Direction moteur droit
 void avancer(int vitesse);
 void reculer(int vitesse);
 void stopRobot();
+void tournerDroite();
+void tournerGauche();
 
 void setup() {
   // Initialisation des broches
