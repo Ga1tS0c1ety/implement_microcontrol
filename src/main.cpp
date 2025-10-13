@@ -1,54 +1,57 @@
 #include "Arduino.h"
+#include "motors.h"
+#include "movement.h"
 
-#ifndef LED_BUILTIN
-#define LED_BUILTIN 13
-#endif
+/* // --- Définition des broches pour les moteurs ---
+const int ENB = 8;  // Enable moteur droit (PWM)
+const int IN3 = 36;  // Direction moteur droit
+const int IN4 = 37;  // Direction moteur droit
 
-// --- Définition des broches pour les moteurs ---
-const int ENA = 9;   // Enable moteur gauche (PWM)
-const int IN1 = 8;   // Direction moteur gauche
-const int IN2 = 7;   // Direction moteur gauche
-
-const int ENB = 10;  // Enable moteur droit (PWM)
-const int IN3 = 12;  // Direction moteur droit
-const int IN4 = 11;  // Direction moteur droit
-
-// --- Prototypes des fonctions ---
-void avancer(int vitesse);
-void reculer(int vitesse);
-void stopRobot();
+const int ENA = 12;   // Enable moteur gauche (PWM)
+const int IN1 = 34;   // Direction moteur gauche
+const int IN2 = 35;   // Direction moteur gauche
+*/
 
 void setup() {
-  // Initialisation des broches
-  pinMode(ENA, OUTPUT);
-  pinMode(ENB, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT);
-
-  // Démarre avec les moteurs arrêtés
-  stopRobot();
+  Serial.begin(115200);
+  motors_init();
+  Serial.println("Motor TB6612 test ready.");
+  Serial.println("Commands: F v / L v / R v / STOP");
 }
 
 void loop() {
-  // Fait avancer le robot pendant 3 secondes
-  avancer(200);
-  delay(3000);
-
-  // Stoppe le robot 1 seconde
-  stopRobot();
-  delay(1000);
-
-  // Fait reculer le robot pendant 3 secondes
-  reculer(200);
-  delay(3000);
-
-  // Stoppe de nouveau 2 secondes
-  stopRobot();
-  delay(2000);
+  if (Serial.available()) {
+    String line = Serial.readStringUntil('\n');
+    line.trim();
+    if (line.length() == 0) return;
+    if (line.equalsIgnoreCase("STOP")) {
+      robot_stop();
+      Serial.println("OK STOP");
+      return;
+    }
+    //char side; float val;
+    Serial.print("DEBUG LINE: '");
+    Serial.print(line);
+    Serial.println("'");
+    // On prend le premier caractère comme side
+    char side = line.charAt(0);
+    // On prend tout ce qui suit après le premier espace comme valeur
+    float val = line.substring(2).toFloat();  // 2 = premier caractère + espace
+    motor_error_t e;
+    if (side == 'F' || side == 'f') e = robot_move_forward(val);
+    else if (side == 'R' || side == 'r') e = robot_turn_right(val);
+    else if (side == 'L' || side == 'l') e = robot_turn_left(val);
+    else { Serial.println("ERR side"); return; }
+    if (e == MOTOR_OK) Serial.println("ACK");
+    else if (e == MOTOR_ERR_OUT_OF_RANGE) Serial.println("ACK (sat)");
+    else Serial.println("ERR HW");
+    float lv, rv; motors_get_last_applied(&lv, &rv);
+    Serial.print("Applied L="); Serial.print(lv); Serial.print(" V, R="); Serial.print(rv); Serial.println(" V");
+    // } else Serial.println("ERR parse");
+  }
 }
 
+/*
 // --- Fonctions de mouvement ---
 
 void avancer(int vitesse) {
@@ -77,4 +80,4 @@ void stopRobot() {
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
 }
-
+*/
