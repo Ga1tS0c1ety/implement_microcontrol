@@ -1,4 +1,4 @@
-#include "communication.h"
+#include "../include/communication.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -72,6 +72,26 @@ void Communication_ReceiveChar(CommunicationContext_t *context, char caractere)
     }
 }
 
+/* Fonction utilitaire */
+static int string_starts_with(const char *str, const char *prefix)
+{
+    size_t i = 0U;
+    if ((str == NULL) || (prefix == NULL))
+    {
+        return 0;
+    }
+
+    while (prefix[i] != '\0')
+    {
+        if (str[i] != prefix[i])
+        {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
 /* Décodage d'une trame complète simple */
 void Communication_DecodeMessage(const char *message)
 {
@@ -82,35 +102,43 @@ void Communication_DecodeMessage(const char *message)
     }
 
     /* Commandes avec paramètres */
-    if (strncmp(message, "FORWARD ", 8) == 0)
+    if (string_starts_with(message, "FORWARD "))
     {
-        /* Commande FORWARD avec paramètre */
         printf("Commande FORWARD avec paramètre : %s\n", message + 8);
         Communication_SendACK();
     }
-    else if (strncmp(message, "TURN ", 5) == 0)
+    else if (string_starts_with(message, "TURN "))
     {
-        /* Commande TURN avec paramètre */
         printf("Commande TURN avec paramètre : %s\n", message + 5);
         Communication_SendACK();
     }
     /* Commandes simples */
-    else if (strcmp(message, "FORWARD") == 0)
+    else if (string_starts_with(message, "FORWARD"))
     {
         printf("Commande FORWARD simple\n");
         Communication_SendACK();
     }
-    else if (strcmp(message, "STOP") == 0)
+    else if (string_starts_with(message, "STOP"))
     {
         printf("Commande STOP\n");
         Communication_SendACK();
     }
-    else if (strcmp(message, "TURN") == 0)
+    else if (string_starts_with(message, "TURN"))
     {
         printf("Commande TURN simple\n");
         Communication_SendACK();
     }
     /* Affectation de paramètres */
+    else if (string_starts_with(message, "SPEED="))
+    {
+        printf("Affectation vitesse linéaire : %s\n", message + 6);
+        Communication_SendACK();
+    }
+    else if (string_starts_with(message, "ANGLE_SPEED="))
+    {
+        printf("Affectation vitesse angulaire : %s\n", message + 12);
+        Communication_SendACK();
+    }
     else if (strchr(message, '=') != NULL)
     {
         printf("Affectation de paramètre : %s\n", message);
@@ -121,6 +149,7 @@ void Communication_DecodeMessage(const char *message)
         Communication_SendError("Commande inconnue");
     }
 }
+
 
 
 /* Envoi d’un ACK */
