@@ -39,7 +39,7 @@ void Communication_ReceiveChar(CommunicationContext_t *context, char caractere)
 
         case STATE_RECEIVING:
         {
-            if (caractere == '\n')
+            if ((caractere == '\n') && (context->index < (BUFFER_SIZE - 1U)))
             {
                 context->buffer[context->index] = '\0'; /* Fin de trame */
                 Communication_DecodeMessage(context->buffer);
@@ -72,24 +72,24 @@ void Communication_ReceiveChar(CommunicationContext_t *context, char caractere)
     }
 }
 
-/* Fonction utilitaire */
-static int string_starts_with(const char *str, const char *prefix)
+/* Fonction utilitaire */ //utilisation d'un garde fou
+static bool string_starts_with(const char *str, const char *prefix)
 {
     size_t i = 0U;
     if ((str == NULL) || (prefix == NULL))
     {
-        return 0;
+        return false;
     }
 
     while (prefix[i] != '\0')
     {
         if (str[i] != prefix[i])
         {
-            return 0;
+            return false;
         }
         i++;
     }
-    return 1;
+    return true;
 }
 
 /* Décodage d'une trame complète simple */
@@ -104,44 +104,60 @@ void Communication_DecodeMessage(const char *message)
     /* Commandes avec paramètres */
     if (string_starts_with(message, "FORWARD "))
     {
+        #ifdef DEBUG_PRINTF
         printf("Commande FORWARD avec paramètre : %s\n", message + 8);
+        #endif
         Communication_SendACK();
     }
     else if (string_starts_with(message, "TURN "))
     {
+        #ifdef DEBUG_PRINTF
         printf("Commande TURN avec paramètre : %s\n", message + 5);
+        #endif
         Communication_SendACK();
     }
     /* Commandes simples */
     else if (string_starts_with(message, "FORWARD"))
     {
+        #ifdef DEBUG_PRINTF
         printf("Commande FORWARD simple\n");
+        #endif
         Communication_SendACK();
     }
     else if (string_starts_with(message, "STOP"))
     {
+        #ifdef DEBUG_PRINTF
         printf("Commande STOP\n");
+        #endif
         Communication_SendACK();
     }
     else if (string_starts_with(message, "TURN"))
     {
+        #ifdef DEBUG_PRINTF
         printf("Commande TURN simple\n");
+        #endif
         Communication_SendACK();
     }
     /* Affectation de paramètres */
     else if (string_starts_with(message, "SPEED="))
     {
+        #ifdef DEBUG_PRINTF
         printf("Affectation vitesse linéaire : %s\n", message + 6);
+        #endif
         Communication_SendACK();
     }
     else if (string_starts_with(message, "ANGLE_SPEED="))
     {
+        #ifdef DEBUG_PRINTF
         printf("Affectation vitesse angulaire : %s\n", message + 12);
+        #endif
         Communication_SendACK();
     }
     else if (strchr(message, '=') != NULL)
     {
+        #ifdef DEBUG_PRINTF
         printf("Affectation de paramètre : %s\n", message);
+        #endif
         Communication_SendACK();
     }
     else
@@ -163,6 +179,8 @@ void Communication_SendError(const char *error_msg)
 {
     if (error_msg != NULL)
     {
+        #ifdef DEBUG_PRINTF
         printf("ERR: %s\n", error_msg);
+        #endif
     }
 }

@@ -15,8 +15,8 @@
             "args": [],
             "stopAtEntry": false,
             "externalConsole": false,
-            "cwd": "/home/_gait/Documents/Dossier ithiel/Cours/implementation microcontrolleur /codes/implement_microcontrol",
-            "program": "/home/_gait/Documents/Dossier ithiel/Cours/implementation microcontrolleur /codes/implement_microcontrol/build/Debug/outDebug",
+            "cwd": "/home/_gait/Documents/Dossier ithiel/Cours/implementation microcontrolleur /codes/implement_microcontrol/test",
+            "program": "/home/_gait/Documents/Dossier ithiel/Cours/implementation microcontrolleur /codes/implement_microcontrol/test/build/Debug/outDebug",
             "MIMode": "gdb",
             "miDebuggerPath": "/home/_gait/.platformio/packages/toolchain-atmelavr/bin/avr-gdb",
             "setupCommands": [
