@@ -24,8 +24,6 @@ static float last_left_v = 0.0f;
 static float last_right_v = 0.0f;
 static bool initialized = false;
 
-static const uint16_t DIRECTION_SWITCH_DELAY_MS = 2;
-
 static float saturate_voltage(float v) {
   if (v > MOTORS_MAX_VOLTAGE) return MOTORS_MAX_VOLTAGE;
   if (v < -MOTORS_MAX_VOLTAGE) return -MOTORS_MAX_VOLTAGE;
@@ -42,7 +40,7 @@ static uint8_t voltage_to_pwm(float mag_v) {
 
 void motors_init(void) {
   if (initialized) return;
-  // pins
+
   pinMode(LEFT_BI1_PIN, OUTPUT);
   pinMode(LEFT_BI2_PIN, OUTPUT);
   pinMode(LEFT_PWMB_PIN, OUTPUT);
@@ -62,11 +60,6 @@ void motors_init(void) {
   initialized = true;
 }
 
-/*
-  Generic implementation for one motor:
-  - We ALWAYS set enable PWM to 0 before changing IN1/IN2 (to prevent both halves conducting simultaneously).
-  - Wait a small delay (deadtime) then set IN1/IN2 and re-enable PWM.
-*/
 static motor_error_t motors_set_voltage_generic(
     float v, 
     uint8_t bi1_pin,
@@ -78,21 +71,16 @@ static motor_error_t motors_set_voltage_generic(
   float sat = saturate_voltage(v);
   bool out_of_range = (sat != v);
 
-  // determine direction and magnitude
+  
   bool forward = (sat >= 0.0f);
   float mag = forward ? sat : -sat;
 
   uint8_t pwm = voltage_to_pwm(mag);
 
-  // Safe sequence:
-  // 1) cut PWM
+  
   analogWrite(pwmb_pin, 0);
-  // 2) small deadtime to allow output stage to free
-  //delay(DIRECTION_SWITCH_DELAY_MS);
-
-  // 3) set IN1/IN2 for desired direction
+  
   if (mag == 0.0f) {
-    // coast/brake: keep IN1=0 IN2=0
     digitalWrite(bi1_pin, LOW);
     digitalWrite(bi2_pin, LOW);
   } else {
@@ -105,10 +93,8 @@ static motor_error_t motors_set_voltage_generic(
     }
   }
 
-  // 4) re-apply PWM magnitude
   analogWrite(pwmb_pin, pwm);
 
-  // update last applied value (signed)
   if (last_v_out) *last_v_out = forward ? mag : -mag;
   if (out_of_range) return MOTOR_ERR_OUT_OF_RANGE;
   return MOTOR_OK;
@@ -124,7 +110,7 @@ motor_error_t motors_set_voltage_right(float v) {
 
 void motors_stop(void) {
   if (!initialized) motors_init();
-  // Safe stop: cut PWM then set INx low
+
   analogWrite(LEFT_PWMB_PIN, 0);
   analogWrite(RIGHT_PWMB_PIN, 0);
   digitalWrite(LEFT_BI1_PIN, LOW);
