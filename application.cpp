@@ -67,6 +67,7 @@ void change_mode(){
     {
         case INIT:
         initial_moteur();
+        mode=STOP;
         break;
         case STOP:
 
