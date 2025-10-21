@@ -8,6 +8,7 @@ int main(void)
 {
     CommunicationContext_t context;
     Communication_Init(&context);
+    Order_t ordre;
 
     char c = '\0';
     char line[BUFFER_SIZE] = {0};
@@ -64,8 +65,9 @@ int main(void)
             Communication_ReceiveChar(&context, line[i]);
         }
         /* Envoi du '\n' final pour déclencher la fin de trame */
-        Communication_ReceiveChar(&context, '\n');
+        ordre = Communication_ReceiveChar(&context, '\n');
 
+        printf("ordre : %s, chaine : %.2f",ordre.mode,ordre.value);
         printf("\n");
     }
 
